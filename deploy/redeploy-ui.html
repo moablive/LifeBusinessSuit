@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redeploy · LifeBusinessSuit</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%20role%3D%22img%22%20aria-label%3D%22Redeploy%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22rbg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%237c3aed%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ec4899%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2215%22%20fill%3D%22url%28%23rbg%29%22%2F%3E%3Cg%20fill%3D%22%23ffffff%22%20opacity%3D%220.9%22%3E%3Cpath%20d%3D%22M27%2033%20L21%2041%20L21%2046%20L27%2042%20Z%22%2F%3E%3Cpath%20d%3D%22M37%2033%20L43%2041%20L43%2046%20L37%2042%20Z%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M29%2037%20L35%2037%20L32%2048%20Z%22%20fill%3D%22%23ffd166%22%2F%3E%3Cpath%20d%3D%22M32%2011%20C39%2017%2040%2028%2037%2038%20L27%2038%20C24%2028%2025%2017%2032%2011%20Z%22%20fill%3D%22%23ffffff%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2224%22%20r%3D%223.6%22%20fill%3D%22url%28%23rbg%29%22%2F%3E%3C%2Fsvg%3E" />
+<style>
+  :root {
+    --bg: #0b0f17; --panel: #111826; --panel-2: #0e141f; --border: #1e2937;
+    --text: #e5e9f0; --muted: #8b95a7; --dim: #5b6577;
+    --accent-a: #7c3aed; --accent-b: #ec4899;
+    --green: #22c55e; --red: #ef4444; --yellow: #eab308; --blue: #60a5fa;
+    --mono: ui-monospace, "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: var(--sans); font-size: 14px; line-height: 1.5;
+    display: flex; flex-direction: column; min-height: 100vh;
+  }
+  header {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    background: linear-gradient(180deg, #0d1420, #0b0f17);
+  }
+  .logo {
+    width: 38px; height: 38px; border-radius: 10px; flex: none;
+    background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
+    display: grid; place-items: center; font-size: 20px;
+    box-shadow: 0 4px 18px -6px var(--accent-b);
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 700; letter-spacing: .2px; }
+  header .path { font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  header .spacer { flex: 1; }
+  .pill { font-size: 12px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; }
+
+  main { flex: 1; display: grid; grid-template-columns: 380px 1fr; gap: 0; min-height: 0; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+
+  .controls { border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; }
+  @media (max-width: 860px) { .controls { border-right: none; border-bottom: 1px solid var(--border); } }
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--dim); margin: 22px 0 10px; font-weight: 700; }
+  .section-title:first-child { margin-top: 0; }
+
+  .apps { display: flex; flex-direction: column; gap: 8px; }
+  .app {
+    display: flex; align-items: center; gap: 11px; padding: 11px 13px; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 12px; background: var(--panel-2);
+    transition: border-color .15s, background .15s, transform .05s; user-select: none;
+  }
+  .app:hover { border-color: #2c3a4e; }
+  .app:active { transform: scale(.995); }
+  .app.selected { border-color: var(--accent-b); background: linear-gradient(180deg, rgba(124,58,237,.16), rgba(236,72,153,.10)); }
+  .app.disabled { opacity: .4; pointer-events: none; }
+  .app .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--dim); box-shadow: 0 0 0 3px rgba(255,255,255,.03); }
+  .app .dot.up { background: var(--green); box-shadow: 0 0 8px 0 var(--green); }
+  .app .dot.partial { background: var(--yellow); }
+  .app .dot.down { background: var(--red); }
+  .app .name { font-weight: 600; flex: 1; }
+  .app .meta { font-size: 11.5px; color: var(--muted); font-family: var(--mono); }
+  .app .check { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--dim); flex: none; display: grid; place-items: center; font-size: 12px; color: #fff; }
+  .app.selected .check { background: linear-gradient(135deg, var(--accent-a), var(--accent-b)); border-color: transparent; }
+
+  .app.all { border-style: dashed; }
+  .app.all .name { color: var(--accent-b); }
+
+  .flags { display: flex; flex-direction: column; gap: 6px; }
+  .flag { display: flex; align-items: flex-start; gap: 11px; padding: 9px 11px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; }
+  .flag:hover { background: var(--panel-2); }
+  .flag.danger.on { border-color: rgba(239,68,68,.4); background: rgba(239,68,68,.08); }
+  .flag .sw { width: 38px; height: 22px; border-radius: 999px; background: #26313f; flex: none; position: relative; transition: background .15s; margin-top: 1px; }
+  .flag .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .16s; }
+  .flag.on .sw { background: linear-gradient(135deg, var(--accent-a), var(--accent-b)); }
+  .flag.on.danger .sw { background: linear-gradient(135deg, #f97316, var(--red)); }
+  .flag.on .sw::after { transform: translateX(16px); }
+  .flag .txt b { display: block; font-size: 13.5px; font-weight: 600; }
+  .flag .txt code { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .flag .txt small { display: block; color: var(--dim); font-size: 11.5px; margin-top: 1px; }
+
+  .cmdbar { position: sticky; bottom: 0; margin-top: 22px; }
+  .cmd { display: block; font-family: var(--mono); font-size: 12.5px; background: #06090f; border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; color: #b7e4c7; overflow-x: auto; white-space: nowrap; }
+  .cmd .muted { color: var(--dim); }
+  .actions { display: flex; gap: 10px; margin-top: 12px; }
+  button {
+    font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer;
+    border: none; border-radius: 10px; padding: 11px 18px; color: #fff; transition: filter .15s, opacity .15s;
+  }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-run { flex: 1; background: linear-gradient(135deg, var(--accent-a), var(--accent-b)); box-shadow: 0 6px 20px -8px var(--accent-b); }
+  .btn-run:not(:disabled):hover { filter: brightness(1.08); }
+  .btn-stop { background: #26313f; }
+  .btn-stop:not(:disabled):hover { background: #33404f; }
+
+  .console { display: flex; flex-direction: column; min-width: 0; background: var(--panel-2); }
+  .console-head { display: flex; align-items: center; gap: 14px; padding: 11px 18px; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+  .status { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .status .sdot { width: 9px; height: 9px; border-radius: 50%; background: var(--dim); }
+  .status.running .sdot { background: var(--blue); animation: pulse 1s infinite; }
+  .status.ok .sdot { background: var(--green); }
+  .status.fail .sdot { background: var(--red); }
+  .status.stopped .sdot { background: var(--yellow); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  .console-head .spacer { flex: 1; }
+  .console-head .elapsed { font-family: var(--mono); color: var(--muted); }
+  .console-head .tbtn { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 5px 10px; font-size: 12px; font-weight: 500; }
+  .console-head .tbtn:hover { color: var(--text); border-color: #2c3a4e; }
+  .console-head .tbtn.on { color: var(--accent-b); border-color: var(--accent-b); }
+
+  #log { flex: 1; margin: 0; padding: 16px 18px; overflow-y: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+  #log .l-run { color: var(--blue); }
+  #log .l-ok { color: var(--green); }
+  #log .l-err { color: var(--red); font-weight: 600; }
+  #log .l-warn { color: var(--yellow); }
+  #log .l-head { color: var(--accent-b); font-weight: 700; }
+  #log .l-step { color: var(--dim); }
+  #log .l-sys { color: var(--muted); font-style: italic; }
+  #log .empty { color: var(--dim); }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo"><svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true"><path d="M27 33 L21 41 L21 46 L27 42 Z" fill="#fff" opacity=".9"/><path d="M37 33 L43 41 L43 46 L37 42 Z" fill="#fff" opacity=".9"/><path d="M29 37 L35 37 L32 48 Z" fill="#ffd166"/><path d="M32 11 C39 17 40 28 37 38 L27 38 C24 28 25 17 32 11 Z" fill="#fff"/><circle cx="32" cy="24" r="3.6" fill="#7c3aed"/></svg></div>
+    <div>
+      <h1>Redeploy · LifeBusinessSuit</h1>
+      <div class="path" id="scriptPath">redeploy.sh</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="pill" id="conn">conectando…</div>
+  </header>
+
+  <main>
+    <div class="controls">
+      <div class="section-title">Apps</div>
+      <div class="apps" id="apps"></div>
+
+      <div class="section-title">Opções</div>
+      <div class="flags" id="flags"></div>
+
+      <div class="cmdbar">
+        <div class="section-title" style="margin-bottom:8px">Comando</div>
+        <code class="cmd" id="cmd"></code>
+        <div class="actions">
+          <button class="btn-run" id="run">▶ Rodar</button>
+          <button class="btn-stop" id="stop" disabled>■ Parar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="console">
+      <div class="console-head">
+        <div class="status" id="status"><span class="sdot"></span><span id="statusText">Ocioso</span></div>
+        <span class="spacer"></span>
+        <span class="elapsed" id="elapsed"></span>
+        <button class="tbtn on" id="autoscroll">auto-scroll</button>
+        <button class="tbtn" id="clear">limpar</button>
+      </div>
+      <pre id="log"><span class="empty">A saída do redeploy aparece aqui. Selecione os apps e clique em Rodar.</span></pre>
+    </div>
+  </main>
+
+<script>
+const FLAG_DEFS = [
+  { flag: "--down",     title: "Recriar do zero (--down)", desc: "Derruba os containers antigos antes de subir. Interrompe o serviço por alguns segundos.", danger: true },
+  { flag: "--no-build", title: "Sem rebuild (--no-build)", desc: "Sobe usando a imagem já existente, sem reconstruir. Bem mais rápido." },
+  { flag: "--pull",     title: "Atualizar imagens base (--pull)", desc: "Faz pull das imagens base antes de subir." },
+  { flag: "--prune",    title: "Limpar imagens dangling (--prune)", desc: "Roda docker image prune ao final. Afeta o Docker inteiro.", danger: true },
+];
+
+const state = { apps: [], selected: new Set(), all: false, flags: new Set(), running: false, es: null, startTs: 0, timer: null };
+const $ = (id) => document.getElementById(id);
+const logEl = $("log");
+
+function containerPrefix(name) { return "app_" + name.toLowerCase() + "_"; }
+
+async function init() {
+  try {
+    const r = await fetch("/api/apps");
+    const d = await r.json();
+    state.apps = d.apps;
+    $("scriptPath").textContent = d.script;
+    $("conn").textContent = "online · porta " + d.port;
+    renderApps(); renderFlags(); updateCmd();
+    refreshStatus();
+    setInterval(refreshStatus, 5000);
+  } catch (e) {
+    $("conn").textContent = "erro ao conectar";
+  }
+}
+
+function renderApps() {
+  const wrap = $("apps"); wrap.innerHTML = "";
+  const allCard = mkApp({ name: "TODOS", all: true });
+  wrap.appendChild(allCard);
+  for (const name of state.apps) wrap.appendChild(mkApp({ name }));
+  syncAppUI();
+}
+
+function mkApp({ name, all }) {
+  const el = document.createElement("div");
+  el.className = "app" + (all ? " all" : "");
+  el.dataset.name = name; el.dataset.all = all ? "1" : "";
+  el.innerHTML = all
+    ? '<span class="dot"></span><span class="name">TODOS os apps</span><span class="check">✓</span>'
+    : '<span class="dot" data-dot></span><span class="name">'+name+'</span><span class="meta" data-meta>—</span><span class="check">✓</span>';
+  el.addEventListener("click", () => {
+    if (state.running) return;
+    if (all) { state.all = !state.all; if (state.all) state.selected.clear(); }
+    else { state.all = false; state.selected.has(name) ? state.selected.delete(name) : state.selected.add(name); }
+    syncAppUI(); updateCmd();
+  });
+  return el;
+}
+
+function syncAppUI() {
+  for (const el of document.querySelectorAll(".app")) {
+    const isAll = el.dataset.all === "1";
+    const sel = isAll ? state.all : state.selected.has(el.dataset.name);
+    el.classList.toggle("selected", sel);
+    el.classList.toggle("disabled", isAll ? false : state.all);
+  }
+}
+
+function renderFlags() {
+  const wrap = $("flags"); wrap.innerHTML = "";
+  for (const f of FLAG_DEFS) {
+    const el = document.createElement("div");
+    el.className = "flag" + (f.danger ? " danger" : "");
+    el.innerHTML = '<span class="sw"></span><span class="txt"><b>'+f.title+'</b><small>'+f.desc+'</small></span>';
+    el.addEventListener("click", () => {
+      if (state.running) return;
+      state.flags.has(f.flag) ? state.flags.delete(f.flag) : state.flags.add(f.flag);
+      el.classList.toggle("on", state.flags.has(f.flag));
+      updateCmd();
+    });
+    wrap.appendChild(el);
+  }
+}
+
+function selectedArgs() {
+  const flags = FLAG_DEFS.map(f => f.flag).filter(f => state.flags.has(f)); // stable order
+  const apps = state.all ? [] : [...state.selected];
+  return { flags, apps };
+}
+
+function updateCmd() {
+  const { flags, apps } = selectedArgs();
+  const parts = ["./redeploy.sh", ...flags, ...apps];
+  let html = parts.map(p => p === "./redeploy.sh" ? p : '<span>'+p+'</span>').join(" ");
+  if (state.all) html += ' <span class="muted"># todos os apps</span>';
+  else if (apps.length === 0) html += ' <span class="muted"># selecione ao menos um app</span>';
+  $("cmd").innerHTML = html;
+  $("run").disabled = state.running || (!state.all && apps.length === 0);
+}
+
+function setStatus(cls, text) {
+  $("status").className = "status " + cls;
+  $("statusText").textContent = text;
+}
+
+function appendLine(text, sys) {
+  if (logEl.querySelector(".empty")) logEl.innerHTML = "";
+  const clean = text.replace(/\x1b\[[0-9;]*m/g, "").replace(/\r/g, "");
+  const span = document.createElement("span");
+  span.textContent = clean + "\n";
+  span.className = classify(clean, sys);
+  logEl.appendChild(span);
+  if ($("autoscroll").classList.contains("on")) logEl.scrollTop = logEl.scrollHeight;
+}
+
+function classify(s, sys) {
+  if (sys) return "l-sys";
+  const t = s.trimStart();
+  if (t.startsWith("✔")) return "l-ok";
+  if (t.startsWith("✗")) return "l-err";
+  if (t.startsWith("⚠")) return "l-warn";
+  if (t.startsWith("▶")) return "l-run";
+  if (/^(═|─|═+|RESUMO|══)/.test(t) || t.includes("RESUMO")) return "l-head";
+  if (/^#\d+/.test(t)) return "l-step";
+  if (/\b(error|erro|failed|falhou)\b/i.test(t)) return "l-err";
+  return "";
+}
+
+function fmtElapsed(ms) {
+  const s = Math.floor(ms / 1000);
+  return (s >= 60 ? Math.floor(s/60)+"m " : "") + (s%60) + "s";
+}
+
+function run() {
+  const { flags, apps } = selectedArgs();
+  if (!state.all && apps.length === 0) return;
+  state.running = true;
+  $("run").disabled = true; $("stop").disabled = false;
+  document.querySelectorAll(".app,.flag").forEach(e => e.style.pointerEvents = "none");
+  setStatus("running", "Rodando…");
+  logEl.innerHTML = "";
+  const cmd = ["./redeploy.sh", ...flags, ...apps].join(" ");
+  appendLine("$ " + cmd, true);
+
+  state.startTs = Date.now();
+  state.timer = setInterval(() => { $("elapsed").textContent = fmtElapsed(Date.now() - state.startTs); }, 250);
+
+  const q = new URLSearchParams();
+  if (state.all) q.set("all", "1"); else q.set("apps", apps.join(","));
+  if (flags.length) q.set("flags", flags.join(","));
+  const es = new EventSource("/api/run?" + q.toString());
+  state.es = es;
+
+  es.onmessage = (ev) => { try { appendLine(JSON.parse(ev.data).line); } catch {} };
+  es.addEventListener("end", (ev) => {
+    let code = 0; try { code = JSON.parse(ev.data).code; } catch {}
+    finish(code === 0 ? "ok" : "fail", code === 0 ? "Concluído ✓" : "Falhou (exit " + code + ")");
+  });
+  es.addEventListener("fatal", (ev) => {
+    let msg = "erro"; try { msg = JSON.parse(ev.data).message; } catch {}
+    appendLine("⚠ " + msg, true); finish("fail", "Erro");
+  });
+  es.onerror = () => { if (state.running) { finish("fail", "Conexão perdida"); } };
+}
+
+function finish(cls, text) {
+  if (!state.running && cls !== "stopped") return;
+  state.running = false;
+  clearInterval(state.timer);
+  if (state.es) { state.es.close(); state.es = null; }
+  $("stop").disabled = true;
+  document.querySelectorAll(".app,.flag").forEach(e => e.style.pointerEvents = "");
+  setStatus(cls, text);
+  updateCmd();
+  refreshStatus();
+}
+
+function stop() {
+  if (!state.running) return;
+  appendLine("⚠ Interrompido pelo usuário (o build no daemon pode continuar).", true);
+  if (state.es) { state.es.close(); state.es = null; }
+  clearInterval(state.timer);
+  state.running = false;
+  $("stop").disabled = true;
+  document.querySelectorAll(".app,.flag").forEach(e => e.style.pointerEvents = "");
+  setStatus("stopped", "Interrompido");
+  updateCmd();
+  // best-effort: tell the server to kill the process group
+  fetch("/api/stop", { method: "POST" }).catch(() => {});
+}
+
+async function refreshStatus() {
+  try {
+    const r = await fetch("/api/ps");
+    const { containers } = await r.json();
+    for (const el of document.querySelectorAll(".app")) {
+      if (el.dataset.all === "1") continue;
+      const pref = containerPrefix(el.dataset.name);
+      const mine = containers.filter(c => c.name.startsWith(pref));
+      const up = mine.filter(c => /^Up/i.test(c.status)).length;
+      const dot = el.querySelector("[data-dot]"), meta = el.querySelector("[data-meta]");
+      if (!mine.length) { dot.className = "dot down"; meta.textContent = "parado"; }
+      else if (up === mine.length) { dot.className = "dot up"; meta.textContent = up + "/" + mine.length + " up"; }
+      else { dot.className = "dot partial"; meta.textContent = up + "/" + mine.length + " up"; }
+    }
+  } catch {}
+}
+
+$("run").addEventListener("click", () => { if (!state.running) run(); });
+$("stop").addEventListener("click", stop);
+$("clear").addEventListener("click", () => { logEl.innerHTML = '<span class="empty">Log limpo.</span>'; });
+$("autoscroll").addEventListener("click", () => $("autoscroll").classList.toggle("on"));
+init();
+</script>
+</body>
+</html>
