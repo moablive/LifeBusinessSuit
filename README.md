@@ -207,3 +207,50 @@ O detalhamento de cada app está no README dele, na seção *Versionamento e avi
 de nova versão*.
 
 ---
+
+---
+
+## 🔥 7. Hot reload (modo dev)
+
+Os quatro apps têm um `docker-compose.dev.yml` que devolve o hot reload sem
+tocar no caminho de produção. **Ele é sobreposição:** `docker compose up -d`
+sozinho e o `redeploy.sh` continuam subindo produção — build multi-stage, front
+por nginx, sem volume de código. Só entra em modo dev quem passa `-f` nos dois
+arquivos.
+
+```bash
+cd MoneyAPP && pnpm docker:dev        # atalho nos três apps pnpm
+# LBSTTSAPP (sem package.json na raiz):
+cd LBSTTSAPP && docker compose --env-file ../shared.env --env-file .env \
+  -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+Editou no host, o container reage: `tsx watch` reinicia o backend em ~1 s e o
+Vite troca o módulo no navegador.
+
+| App | Frontend (Vite) | Backend (direto) |
+|---|---|---|
+| LBSTTSAPP | `:5181` | `:5081` |
+| MoneyAPP | `:5182` | `:5082` |
+| NotesAPP | `:5183` | `:5083` |
+| TodoAPP | `:5184` | `:5084` |
+
+Portas distintas de propósito: dá para subir mais de um app em dev ao mesmo
+tempo sem colisão. Em modo dev o acesso é por essas portas, **não** pelo domínio
+público — o túnel da Cloudflare aponta para o nginx, que não sobe em dev.
+
+### As armadilhas, todas comentadas nos arquivos
+
+- **Volumes anônimos de `node_modules` são obrigatórios.** O bind mount da raiz
+  cobriria o `node_modules` do container pelo do host, resolvido para outra
+  plataforma. Workspace novo em `apps/` ou `packages/` = linha nova na âncora.
+- **Imagem de dev com nome próprio** (sufixo `-dev`). Sem isso o compose
+  reaproveita a imagem de produção com o mesmo nome, ignora o `target:` e o
+  container sobe com o nginx, morrendo em `pnpm: not found`.
+- **Em dev o nginx sai, e o proxy `/api` vai junto.** Quem encaminha passa a ser
+  o Vite, via `DEV_API_TARGET`.
+- **Rebuild continua necessário** para mudança em `package.json`, `Dockerfile`,
+  `.env` ou compose — e com `down -v`, porque o volume anônimo sobrevive ao
+  `--build` com o `node_modules` antigo.
+- **O bot do LBSTTSAPP fica de fora**: é Python, sem watcher. O código está
+  montado, mas quem aplica é `docker restart lbs_ttsapp_bot`.
