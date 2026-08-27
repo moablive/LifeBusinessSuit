@@ -100,7 +100,7 @@ Tudo relacionado ao redeploy dos apps do LifeBusinessSuit fica na pasta `deploy/
 | `start-ui.sh` | Gerencia o painel (`start`/`stop`/`restart`/`status`) em background, escutando no IP da VPN Tailscale. |
 
 ### Fluxo de Deploy e Integração (redeploy.sh)
-1.  **Descoberta Automática**: Lê todas as pastas raiz que contém um `docker-compose.yml` (MailAPP, MoneyAPP, TodoAPP, NotesAPP).
+1.  **Descoberta Automática**: Lê todas as pastas raiz que contém um `docker-compose.yml` (LBSTTSAPP, MoneyAPP, NotesAPP, TodoAPP).
 2.  **Garantia de Rede**: Verifica e cria (se não existir) a rede `awl_network`.
 3.  **Deploy Direcionado**: O usuário pode executar de forma interativa ou via script (ex: `deploy/redeploy.sh MoneyAPP`) para fazer pull das imagens mais recentes, build se necessário e recriar apenas os containers do projeto específico, sem afetar o restante do ecossistema.
 
@@ -137,3 +137,73 @@ HOST=127.0.0.1 deploy/start-ui.sh start   # só localhost
 ```
 
 O servidor só executa o `redeploy.sh` com argumentos validados (flags de uma allowlist + nomes de apps existentes) e roda via `spawn` sem shell — sem risco de injeção de comando.
+
+---
+
+## 🏷️ 6. Versionamento e aviso de nova versão
+
+**Os quatro apps têm o mesmo mecanismo, implantado em 27/08/2026.** Ele resolve
+um problema que só aparece com PWA instalado na tela inicial: o aparelho fica
+semanas sem recarregar de verdade, então o redeploy sobe a versão nova e o
+usuário continua rodando o bundle antigo — chamando rota que mudou e com bug já
+corrigido, sem sinal nenhum de que está desatualizado.
+
+| App | Versão nasce em | Aparece em |
+|---|---|---|
+| LBSTTSAPP | `LBSTTSAPP/VERSION` | badge no canto · `GET /health` · banner |
+| MoneyAPP | `MoneyAPP/VERSION` | idem |
+| NotesAPP | `NotesAPP/VERSION` | idem |
+| TodoAPP | `TodoAPP/VERSION` | idem |
+
+**Cada app tem o próprio `VERSION`** — a suite não versiona em bloco. A
+comparação que acende o aviso é sempre dentro do mesmo app: o bundle contra o
+`/health` dele. Um app em `0.0.7` e outro em `0.0.2` é estado normal.
+
+### O fluxo, igual nos quatro
+
+```
+VERSION (0.0.1)                       ← fonte da verdade, versionada no git
+   │  node scripts/bump-version.mjs
+   ▼
+0.0.2 + APP_BUILD_DATE
+   │
+   └─▶ .env  (APP_VERSION, APP_BUILD_DATE)   ← o --env-file do redeploy.sh
+              │
+              ├─▶ backend  APP_VERSION       → GET /health
+              └─▶ frontend VITE_APP_VERSION  → build-arg, congelado no bundle
+                             │
+                             ▼
+                   useVersionCheck compara os dois, a cada 5 min e ao
+                   voltar o foco para o app
+                             │  divergiu?
+                             ▼
+                   UpdateBanner: "Nova versão disponível"  [Depois] [Atualizar agora]
+```
+
+### Publicar uma versão nova
+
+```bash
+cd MoneyAPP && node scripts/bump-version.mjs   # 0.0.1 -> 0.0.2
+cd .. && deploy/redeploy.sh MoneyAPP           # o --build é o padrão
+```
+
+O `--build` **não é opcional aqui**: a versão do front é build-arg, congelada
+pelo `vite build` dentro da imagem. Um `redeploy.sh --no-build` republica o
+container com o bundle anterior, e o app passa a anunciar uma versão que não é
+a dele. O backend, esse, lê `APP_VERSION` em runtime e acompanha na hora.
+
+### Três decisões que valem para toda a suite
+
+- **O aviso sugere, não executa.** Recarregar sozinho jogaria fora formulário
+  meio preenchido. Quem decide é o usuário, no banner.
+- **O `nginx.conf` de cada front encaminha `/health` ao backend.** Sem essa
+  `location` o caminho cai no *SPA fallback* e devolve o `index.html` — JSON
+  esperado, HTML recebido, e o banner nunca aparece, sem erro no console.
+- **Sem `APP_VERSION` no ambiente, a checagem se desliga.** Em dev não há
+  baseline, e comparar contra a versão real do backend só geraria falso
+  positivo.
+
+O detalhamento de cada app está no README dele, na seção *Versionamento e aviso
+de nova versão*.
+
+---
