@@ -6,9 +6,10 @@
 # nenhuma mensagem util. Reconstruido em 27/08/2026, junto com a entrada nova
 # do LBSNotify.
 #
-# `branch` esta preenchido porque a suite e mista de proposito — TodoAPP e
-# MoneyAPP usam `main`; NotesAPP e LBSTTSAPP, `master`. Nada foi renomeado para
-# uniformizar.
+# `branch` esta preenchido porque a suite e mista de proposito — LBS_MoneyAPP,
+# LBS_TodoAPP e LBS_NotifyAPP usam `main`; LBS_NotesAPP e LBS_TTSAPP, `master`.
+# Nada foi renomeado para uniformizar: o valor aqui tem que ser o que existe no
+# remoto, senao `git submodule update --remote` falha.
 
 [submodule "LBS_NotifyAPP"]
 	path = LBS_NotifyAPP
@@ -18,7 +19,7 @@
 [submodule "LBS_TTSAPP"]
 	path = LBS_TTSAPP
 	url = https://github.com/moablive/LBS_TTSAPP.git
-	branch = main
+	branch = master
 
 [submodule "LBS_MoneyAPP"]
 	path = LBS_MoneyAPP
@@ -28,7 +29,7 @@
 [submodule "LBS_NotesAPP"]
 	path = LBS_NotesAPP
 	url = https://github.com/moablive/LBS_NotesAPP.git
-	branch = main
+	branch = master
 
 [submodule "LBS_TodoAPP"]
 	path = LBS_TodoAPP
