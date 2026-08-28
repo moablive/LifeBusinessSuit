@@ -10,27 +10,27 @@
 # MoneyAPP usam `main`; NotesAPP e LBSTTSAPP, `master`. Nada foi renomeado para
 # uniformizar.
 
-[submodule "LBSNotify"]
-	path = LBSNotify
-	url = https://github.com/moablive/LBSNotify.git
+[submodule "LBS_NotifyAPP"]
+	path = LBS_NotifyAPP
+	url = https://github.com/moablive/LBS_NotifyAPP.git
 	branch = main
 
-[submodule "LBSTTSAPP"]
-	path = LBSTTSAPP
-	url = https://github.com/moablive/LBSTTSAPP.git
-	branch = master
-
-[submodule "MoneyAPP"]
-	path = MoneyAPP
-	url = https://github.com/moablive/MoneyAPP.git
+[submodule "LBS_TTSAPP"]
+	path = LBS_TTSAPP
+	url = https://github.com/moablive/LBS_TTSAPP.git
 	branch = main
 
-[submodule "NotesAPP"]
-	path = NotesAPP
-	url = https://github.com/moablive/NotesAPP.git
-	branch = master
+[submodule "LBS_MoneyAPP"]
+	path = LBS_MoneyAPP
+	url = https://github.com/moablive/LBS_MoneyAPP.git
+	branch = main
 
-[submodule "TodoAPP"]
-	path = TodoAPP
-	url = https://github.com/moablive/TodoAPP.git
+[submodule "LBS_NotesAPP"]
+	path = LBS_NotesAPP
+	url = https://github.com/moablive/LBS_NotesAPP.git
+	branch = main
+
+[submodule "LBS_TodoAPP"]
+	path = LBS_TodoAPP
+	url = https://github.com/moablive/LBS_TodoAPP.git
 	branch = main
