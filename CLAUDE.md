@@ -21,7 +21,12 @@ commitar dentro de um submódulo, confira em qual branch ele vive:
 Esta tabela é a mesma coisa que o campo `branch` de cada seção do `.gitmodules`, e
 cada submódulo repete o próprio caso no seu `CLAUDE.md`. Mudou um, mudam os três.
 
-O superprojeto usa `main`.
+O superprojeto usa **`master`** — é para onde o `origin/HEAD` do
+`moablive/LifeBusinessSuit` aponta no GitHub. Houve uma renomeação local para
+`main` em 27/08/2026 que empurrou o trabalho para um `origin/main` novo e deixou
+o `master` — o branch que todo `git clone` recebe — três commits atrás. Desfeito
+em 28/08/2026: nada aqui deve ser renomeado para casar com os apps que usam
+`main`, a suíte é mista de propósito.
 
 ```bash
 git config -f .gitmodules --get-regexp 'submodule\..*\.branch'   # confere a tabela
