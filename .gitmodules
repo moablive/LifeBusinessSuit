@@ -1,0 +1,36 @@
+# Submodulos do LifeBusinessSuit.
+#
+# Este arquivo FALTAVA. O indice ja tinha os gitlinks (modo 160000) dos quatro
+# apps, mas sem o .gitmodules o `git submodule update --init` nao tem de onde
+# tirar a URL: quem clonasse o repositorio recebia quatro diretorios VAZIOS e
+# nenhuma mensagem util. Reconstruido em 27/08/2026, junto com a entrada nova
+# do LBSNotify.
+#
+# `branch` esta preenchido porque a suite e mista de proposito — TodoAPP e
+# MoneyAPP usam `main`; NotesAPP e LBSTTSAPP, `master`. Nada foi renomeado para
+# uniformizar.
+
+[submodule "LBSNotify"]
+	path = LBSNotify
+	url = https://github.com/moablive/LBSNotify.git
+	branch = main
+
+[submodule "LBSTTSAPP"]
+	path = LBSTTSAPP
+	url = https://github.com/moablive/LBSTTSAPP.git
+	branch = master
+
+[submodule "MoneyAPP"]
+	path = MoneyAPP
+	url = https://github.com/moablive/MoneyAPP.git
+	branch = main
+
+[submodule "NotesAPP"]
+	path = NotesAPP
+	url = https://github.com/moablive/NotesAPP.git
+	branch = master
+
+[submodule "TodoAPP"]
+	path = TodoAPP
+	url = https://github.com/moablive/TodoAPP.git
+	branch = main

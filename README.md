@@ -1,6 +1,6 @@
 # 🏗️ LifeBusinessSuit (LBS)
 
-Guia completo da arquitetura do sistema LifeBusinessSuit (MailAPP, MoneyAPP, NotesAPP, TodoAPP) e instruções de deploy.
+Guia completo da arquitetura do sistema LifeBusinessSuit (MailAPP, MoneyAPP, NotesAPP, TodoAPP), da plataforma central de notificações (LBS Notify) e instruções de deploy.
 
 ---
 
@@ -86,6 +86,19 @@ Módulo focado em gestão do conhecimento e anotações rápidas.
     *   **Ação de Push**: Disparo diário da curadoria de "Notas para rever hoje" ou lembrete pontual.
     *   **Formato Padrão UX**: Bloco de citação (quote) com a prévia da nota e botões Inline: "📖 Abrir no App", "🔄 Rever em 7 dias", "🗑️ Arquivar".
 
+#### 🔔 LBS Notify
+
+Plataforma **central** de notificações da suite — não é um app com tela, é a infraestrutura de push que os outros quatro passam a usar.
+
+*   **Containers**: `lbs_notify_api` (API) e `lbs_notify_worker` (fila) — a mesma imagem, com CMD diferente.
+*   **Banco**: `lbsnotify` no `server_db_postgres`, com quatro tabelas (`notification_devices`, `notification_preferences`, `notifications`, `notification_deliveries`).
+*   **Por que existe**: antes, TodoAPP, MoneyAPP e NotesAPP carregavam cada um a própria tabela `push_subscriptions`, o próprio par VAPID e o envio síncrono dentro do cron do bot — sem fila, sem idempotência, e apagando a inscrição revogada junto com a única pista de por que ela morreu.
+*   **Fila sem Redis**: Outbox na própria tabela, com `FOR UPDATE SKIP LOCKED`. Idempotência por `event_id`, retry com backoff, opt-out e silêncio noturno por usuário.
+*   **O Telegram não muda**: os bots continuam mandando mensagem como sempre. O Notify trata push — Web Push hoje, FCM quando existir app Android.
+*   **Rollout gradual**: as flags `<APP>_NOTIFY_USE_CENTRAL` e `VITE_LBS_NOTIFY_URL` nascem desligadas. Com elas assim, nada muda no comportamento atual.
+
+📖 Detalhes em [`LBSNotify/README.md`](LBSNotify/README.md) e [`LBSNotify/docs/ARCHITECTURE_DISCOVERY.md`](LBSNotify/docs/ARCHITECTURE_DISCOVERY.md).
+
 ---
 
 ## 🚀 5. Deploy
@@ -150,6 +163,7 @@ corrigido, sem sinal nenhum de que está desatualizado.
 
 | App | Versão nasce em | Aparece em |
 |---|---|---|
+| LBSNotify | `LBSNotify/VERSION` | `GET /health` (não tem frontend, então não há badge) |
 | LBSTTSAPP | `LBSTTSAPP/VERSION` | badge no canto · `GET /health` · banner |
 | MoneyAPP | `MoneyAPP/VERSION` | idem |
 | NotesAPP | `NotesAPP/VERSION` | idem |
