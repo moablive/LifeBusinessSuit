@@ -1,10 +1,11 @@
-# Secrets
+# Segredos: o valor real so no .env local; o repositorio versiona so o exemplo.
+# As tres primeiras linhas sao o minimo — `.env` sozinho nao pega `.env.db` nem
+# `.env.bak.20260820-135718`, e sem o `!` o `.env.*` engole o proprio exemplo.
 .env
 .env.*
+!.env.example
 *.env
 shared.env
-deploy/*.env
-**/notify.env
 
 # Logs
 *.log
@@ -29,24 +30,6 @@ __pycache__/
 *.sock
 tmp/
 temp/
-
-# Runtime / transient deploy files
-deploy/*.pid
-deploy/*.tmp
-deploy/*.log
-
-# Keep subprojects, but ignore their git internals in this root repo
-MoneyAPP/.git
-NotesAPP/.git
-TodoAPP/.git
-MailAPP/.git
-
-# Optional: ignore all nested git dirs in this backup repo
-**/.git
-# Segredos: valor real so no .env local; o repo versiona apenas o exemplo
-.env
-.env.*
-!.env.example
 
 # Store local do pnpm: e cache de pacote, nao codigo. Versionado, ele trouxe
 # ~20k arquivos de terceiros para dentro do repositorio — inclusive README e
