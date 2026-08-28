@@ -103,53 +103,42 @@ Plataforma **central** de notificações da suite — não é um app com tela, �
 
 ## 🚀 5. Deploy
 
-Tudo relacionado ao redeploy dos apps do LifeBusinessSuit fica na pasta `deploy/`. O sistema foi projetado para ser atualizado de forma simples e com "zero-downtime".
+O deploy **não mora mais neste repositório**. Ele foi centralizado no painel
+(`server/dashboard`), porque o mesmo mecanismo republica **todos os stacks Docker
+do servidor** — os cinco apps do LifeBusinessSuit são apenas cinco dos 26.
 
-| Arquivo | O que é |
+| Onde | O que é |
 |---|---|
-| `redeploy.sh` | Script que republica os projetos Docker (`docker compose up -d --build`). Descobre automaticamente os apps na pasta-mãe (`../*/docker-compose.yml`). |
-| `redeploy-ui.mjs` | Servidor web local (Node, sem dependências) que serve o painel e faz streaming ao vivo da saída do `redeploy.sh`. |
-| `redeploy-ui.html` | A interface do painel. |
-| `start-ui.sh` | Gerencia o painel (`start`/`stop`/`restart`/`status`) em background, escutando no IP da VPN Tailscale. |
+| `server/dashboard/scripts/redeploy.sh` | Script único de redeploy. Descobre todo `docker-compose.yml` sob `PROJECTS_ROOT` (`/mnt/nvme2tb/docker-services`) mais as raízes de `EXTRA_PROJECT_ROOTS`, em qualquer profundidade. |
+| Aba **Central de Deploys** do painel | A interface: seleção de stacks, flags, comando exato e log ao vivo por streaming. Substitui o antigo `redeploy-ui.mjs`/`start-ui.sh` da porta 7878. |
+| Skill `redeploy.sh` (`awlskills get 27`) | **É esta a versão que o painel executa.** O backend chama `awldocs-run`, que materializa a skill do Postgres — não o arquivo em disco. Alterou o script? Sincronize a skill. |
 
-### Fluxo de Deploy e Integração (redeploy.sh)
-1.  **Descoberta Automática**: Lê todas as pastas raiz que contém um `docker-compose.yml` (LBSTTSAPP, MoneyAPP, NotesAPP, TodoAPP).
-2.  **Garantia de Rede**: Verifica e cria (se não existir) a rede `awl_network`.
-3.  **Deploy Direcionado**: O usuário pode executar de forma interativa ou via script (ex: `deploy/redeploy.sh MoneyAPP`) para fazer pull das imagens mais recentes, build se necessário e recriar apenas os containers do projeto específico, sem afetar o restante do ecossistema.
+O par `DEPLOY_BOT_TOKEN`/`DEPLOY_CHAT_ID` da notificação do Telegram (DockerBot)
+vive no `.env` do painel; o antigo `deploy/notify.env` daqui foi removido.
 
-### Linha de comando (sem painel)
+### Fluxo de deploy
 
-Rode a partir da raiz do repositório (o script descobre os apps na pasta-mãe):
+1. **Descoberta automática**: varre as raízes configuradas atrás de `docker-compose.yml`.
+2. **Garantia de rede**: verifica e cria (se não existir) a rede `awl_network`.
+3. **Camadas de env**: `--env-file` do `shared.env` de cada nível e depois o `.env`
+   do stack, que sobrescreve. É o `shared.env` da raiz deste repositório que
+   alimenta os apps do LBS.
+4. **Deploy direcionado**: republica só o que foi pedido, sem tocar no resto.
 
-```bash
-deploy/redeploy.sh              # menu interativo (ou TODOS)
-deploy/redeploy.sh NotesAPP     # só um app
-deploy/redeploy.sh --no-build NotesAPP
-deploy/redeploy.sh --list
-```
+### Linha de comando
 
-### Painel web
+O nome do stack é o **caminho relativo** — `basename` se repete entre grupos, e
+nome ambíguo é erro em vez de escolha silenciosa:
 
 ```bash
-deploy/start-ui.sh            # menu interativo (start/stop/restart/status)
-deploy/start-ui.sh start      # sobe em background
-deploy/start-ui.sh status     # estado (PID, URL, últimas linhas do log)
-deploy/start-ui.sh restart    # reinicia
-deploy/start-ui.sh stop       # derruba
+cd /mnt/nvme2tb/docker-services/server/dashboard
+
+scripts/redeploy.sh                                 # menu interativo (ou TODOS)
+scripts/redeploy.sh LifeBusinessSuit/LBS_NotesAPP   # só um app
+scripts/redeploy.sh --no-build LBS_NotesAPP         # basename/prefixo também vale
+scripts/redeploy.sh --list                          # lista os stacks descobertos
+scripts/redeploy.sh --dry-run LBS_MoneyAPP          # só mostra o que faria
 ```
-
-Sem argumento abre um **menu interativo**; em automação/sem terminal (cron, boot) sobe direto. O painel roda em background — PID em `deploy/.redeploy-ui.pid`, saída em `deploy/redeploy-ui.log`. Se uma instância órfã já estiver ocupando a porta (ex.: uma execução antiga), o script a detecta e adota/para em vez de estourar `EADDRINUSE`.
-
-Depois abra **http://100.102.39.17:7878** em qualquer dispositivo da sua VPN Tailscale. O painel deixa você selecionar apps, ligar flags (`--no-build`, `--down`, `--pull`, `--prune`), ver o comando exato, rodar e acompanhar o log ao vivo, além do status dos containers.
-
-Portas/hosts alternativos (valem para `start`/`restart`):
-
-```bash
-PORT=9000 deploy/start-ui.sh start        # outra porta
-HOST=127.0.0.1 deploy/start-ui.sh start   # só localhost
-```
-
-O servidor só executa o `redeploy.sh` com argumentos validados (flags de uma allowlist + nomes de apps existentes) e roda via `spawn` sem shell — sem risco de injeção de comando.
 
 ---
 
@@ -197,8 +186,9 @@ VERSION (0.0.1)                       ← fonte da verdade, versionada no git
 ### Publicar uma versão nova
 
 ```bash
-cd MoneyAPP && node scripts/bump-version.mjs   # 0.0.1 -> 0.0.2
-cd .. && deploy/redeploy.sh MoneyAPP           # o --build é o padrão
+cd LBS_MoneyAPP && node scripts/bump-version.mjs                      # 0.0.1 -> 0.0.2
+/mnt/nvme2tb/docker-services/server/dashboard/scripts/redeploy.sh \
+    LifeBusinessSuit/LBS_MoneyAPP                                     # o --build é o padrão
 ```
 
 O `--build` **não é opcional aqui**: a versão do front é build-arg, congelada
