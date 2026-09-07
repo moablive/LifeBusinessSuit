@@ -77,6 +77,7 @@ Gerenciador de tarefas e rotinas.
     *   **Gatilhos**: Verificações temporais contínuas de tarefas com `due_date` (prazo) se aproximando (ex: alerta de 2 horas antes) ou rotinas diárias/hábitos.
     *   **Ação de Push**: Atua como um assistente incisivo para evitar a procrastinação, cobrando progresso.
     *   **Formato Padrão UX**: Mensagem com o nome da tarefa e nível de urgência. Ações Inline exigidas: "✅ Concluir", "⏳ Adianta 1 Hora", "🗓️ Adiar para Amanhã".
+*   **Calendário unificado**: o calendário do TodoAPP é o lugar onde as agendas do usuário se juntam. Além das tarefas, ele lê **duas camadas externas**, cada uma com chip próprio no cabeçalho e toggle em Preferências → Integrações: os lançamentos do **MoneyAPP** (app 3) e a agenda de releases da **Astral Wave Label** (app 8, fora da suíte LBS). As duas seguem a mesma forma — vínculo por pessoa em `user_integrations`, leitura na hora pela rede interna, sem cópia — e em ambas o app provedor é quem decide o que aquela conta pode ver. Detalhes em `LBS_TodoAPP/README.md`.
 
 #### 📓 NotesAPP
 Módulo focado em gestão do conhecimento e anotações rápidas.
