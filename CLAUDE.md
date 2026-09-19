@@ -14,7 +14,6 @@ commitar dentro de um submódulo, confira em qual branch ele vive:
 |---|---|
 | `LBS_MoneyAPP` | `main` |
 | `LBS_NotesAPP` | **`master`** |
-| `LBS_NotifyAPP` | `main` |
 | `LBS_TodoAPP` | `main` |
 | `LBS_TTSAPP` | **`master`** |
 
