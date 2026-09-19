@@ -109,7 +109,7 @@ banco, em `/root/recuperado/lbsnotify-20260919.sql`.
 
 O deploy **não mora mais neste repositório**. Ele foi centralizado no painel
 (`server/dashboard`), porque o mesmo mecanismo republica **todos os stacks Docker
-do servidor** — os cinco apps do LifeBusinessSuit são apenas cinco dos 26.
+do servidor** — os quatro apps do LifeBusinessSuit são apenas quatro dos 34.
 
 | Onde | O que é |
 |---|---|
@@ -156,10 +156,10 @@ corrigido, sem sinal nenhum de que está desatualizado.
 
 | App | Versão nasce em | Aparece em |
 |---|---|---|
-| LBSTTSAPP | `LBSTTSAPP/VERSION` | badge no canto · `GET /health` · banner |
-| MoneyAPP | `MoneyAPP/VERSION` | idem |
-| NotesAPP | `NotesAPP/VERSION` | idem |
-| TodoAPP | `TodoAPP/VERSION` | idem |
+| LBSTTSAPP | `LBS_TTSAPP/VERSION` | badge no canto · `GET /health` · banner |
+| MoneyAPP | `LBS_MoneyAPP/VERSION` | idem |
+| NotesAPP | `LBS_NotesAPP/VERSION` | idem |
+| TodoAPP | `LBS_TodoAPP/VERSION` | idem |
 
 **Cada app tem o próprio `VERSION`** — a suite não versiona em bloco. A
 comparação que acende o aviso é sempre dentro do mesmo app: o bundle contra o
