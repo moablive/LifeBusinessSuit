@@ -1,12 +1,12 @@
 # 🏗️ LifeBusinessSuit (LBS)
 
-Guia completo da arquitetura do sistema LifeBusinessSuit (MailAPP, MoneyAPP, NotesAPP, TodoAPP), e instruções de deploy.
+Guia completo da arquitetura do sistema LifeBusinessSuit (MoneyAPP, NotesAPP, TodoAPP e LBSTTSAPP), e instruções de deploy.
 
 ---
 
 ## 🏗️ Arquitetura de Sistemas
 
-Este documento descreve detalhadamente a arquitetura global, as tecnologias utilizadas e as integrações do ecossistema **LifeBusinessSuit**, que engloba as aplicações: `MailAPP`, `MoneyAPP`, `NotesAPP` e `TodoAPP`.
+Este documento descreve detalhadamente a arquitetura global, as tecnologias utilizadas e as integrações do ecossistema **LifeBusinessSuit**, que engloba as aplicações: `MoneyAPP`, `NotesAPP`, `TodoAPP` e `LBSTTSAPP`.
 
 ### 🌐 1. Visão Geral da Arquitetura (Top-Level)
 
@@ -25,7 +25,7 @@ A stack de tecnologias é padronizada na maior parte dos projetos para otimizar 
 
 #### 🐘 Banco de Dados (PostgreSQL)
 A persistência primária e relacional de todas as aplicações é centralizada em uma única instância robusta do PostgreSQL.
-*   **Container**: `awlsrvDB_postgres`
+*   **Container**: `server_db_postgres`
 *   **Rede**: `awl_network`
 *   **Isolamento lógico**: Apesar de compartilharem o mesmo SGBD para otimização de recursos da máquina host, cada aplicação (MoneyAPP, TodoAPP, etc.) geralmente possui seu próprio database (ou schema) lógico isolado. Não definimos containers de banco individuais dentro do `docker-compose.yml` de cada projeto para evitar overhead no host.
 
@@ -40,31 +40,20 @@ O sistema faz uso de estratégias de Cache Local (In-memory caching) para evitar
 
 Um diferencial chave do ecossistema LBS é a integração ubíqua com o Telegram. Cada módulo principal possui seu próprio **Bot dedicado**.
 
-*   **Como funciona**: Containers independentes (ex: `app_moneyapp_bot`, `app_todoapp_bot`, `app_mailapp_bot`) rodam em paralelo aos backends e frontends.
+*   **Como funciona**: Containers independentes (ex: `lbs_moneyapp_bot`, `lbs_todoapp_bot`, `lbs_ttsapp_bot`) rodam em paralelo aos backends e frontends.
 *   **Comunicação**: O Bot se comunica com a API REST interna do backend do seu respectivo app na rede `awl_network` (ex: `http://moneyapp_backend:3000/api`).
 *   **Funcionalidades**:
-    *   **Notificações Push / Alertas**: Envio instantâneo de faturas a vencer, tarefas agendadas, novos e-mails importantes.
-    *   **Comandos Interativos**: Permite ao usuário cadastrar despesas (MoneyAPP), adicionar tarefas (TodoAPP) ou responder e-mails (MailAPP) diretamente pelo chat do Telegram, sem precisar abrir o Frontend Web.
+    *   **Notificações Push / Alertas**: Envio instantâneo de faturas a vencer, tarefas agendadas, lembretes de nota.
+    *   **Comandos Interativos**: Permite ao usuário cadastrar despesas (MoneyAPP), adicionar tarefas (TodoAPP) ou converter texto em áudio (LBSTTSAPP) diretamente pelo chat do Telegram, sem precisar abrir o Frontend Web.
     *   **Integração IA**: O bot também faz parse da intenção do usuário utilizando inteligência artificial local (Ollama) ou APIs externas (Groq) para criar comandos por texto natural (ex: "gastei 50 no mercado hoje").
 
 ### 📦 4. Detalhamento dos Módulos e Padronização de Notificações (Skill de Bot)
 
 Para garantir consistência na experiência do usuário e facilitar a manutenção, todos os Bots do ecossistema seguem uma **Padronização de Notificações (Cron & Push)**. O padrão estabelece que o agendamento (Cron) fica a cargo do Bot (ou acionado via webhook do Backend) e a interface é estritamente via Telegraf (Telegram API), possuindo botões Inline (`Markup.inlineKeyboard`) padronizados para silenciar (`TOGGLE_NOTIFY`) ou executar ações rápidas sem sair do chat.
 
-#### 📧 MailAPP
-Um cliente e gerenciador de e-mails avançado com recursos de IA.
-*   **Tecnologias Específicas**: 
-    *   **Proton Bridge Headless**: Container isolado para descriptografar caixas (ProtonMail) e expor conexões IMAP/SMTP em texto plano na `awl_network`.
-    *   **Edge-TTS (Serviço em Python)**: Container `app_mailapp_tts` para geração de áudio (Text-to-Speech).
-    *   **Ollama (IA Local)**: Conecta-se ao `server_ollama:11434` para tradução e resumo.
-*   **Padrão de Notificação do Bot**:
-    *   **Gatilhos**: Novo e-mail recebido (via IMAP IDLE ou polling agendado).
-    *   **Ação de Push**: Notifica imediatamente o usuário sobre remetentes prioritários ou regras pré-definidas.
-    *   **Formato Padrão UX**: Mensagem estruturada contendo [Remetente], [Assunto], [Resumo gerado por IA] e botões Inline para: "🔊 Ouvir Áudio (TTS)", "🗑️ Arquivar" ou "🔕 Silenciar Tópico".
-
 #### 💰 MoneyAPP
 Gerenciador financeiro pessoal e empresarial.
-*   **Arquitetura**: Backend/Frontend separados (Node+Vue) ligados ao `awlsrvDB_postgres`.
+*   **Arquitetura**: Backend/Frontend separados (Node+Vue) ligados ao `server_db_postgres`.
 *   **Padrão de Notificação do Bot**:
     *   **Gatilhos**: Rotina diária/semanal (via `startNotificationsCron`) mapeando contas a pagar/receber no dia e faturas de cartão prestes a fechar/vencer.
     *   **Ação de Push**: Alerta proativo matinal de "Resumo Financeiro" e alertas avulsos de vencimento.
@@ -87,38 +76,31 @@ Módulo focado em gestão do conhecimento e anotações rápidas.
     *   **Ação de Push**: Disparo diário da curadoria de "Notas para rever hoje" ou lembrete pontual.
     *   **Formato Padrão UX**: Bloco de citação (quote) com a prévia da nota e botões Inline: "📖 Abrir no App", "🔄 Rever em 7 dias", "🗑️ Arquivar".
 
-#### 🔔 LBS Notify — descontinuado em 19/09/2026
+#### 🔊 LBSTTSAPP
+Recebe texto, foto ou PDF, detecta o idioma, traduz para o idioma preferido e converte em fala.
+*   **Arquitetura**: Frontend Vue 3 (PWA), backend Node.js/Express e bot em Python, com edge-tts próprio (controle fino da taxa de leitura) e Ollama para OCR e tradução.
+*   **Notificação**: Web Push próprio avisa quando um processamento longo termina.
 
-A plataforma **central** de notificações da suíte foi encerrada. Ela foi construída
-e publicada, mas **nunca entregou um único aviso**: o rollout dependia de um
-hostname público no túnel Cloudflare que nunca existiu, então as quatro flags
-`<APP>_NOTIFY_USE_CENTRAL` ficaram em `false` e o banco `lbsnotify` terminou com
-zero linhas em todas as tabelas.
-
-Cada app da suíte entrega **Web Push por conta própria**, com par VAPID e tabela
-`push_subscriptions` no próprio banco — inclusive o LBS_TTSAPP, que era o único
-sem e ganhou o seu no mesmo dia.
-
-Containers derrubados, submódulo removido e repositório apagado do GitHub. O
-código está preservado em `/root/recuperado/LBS_NotifyAPP-20260919.bundle` e o
-banco, em `/root/recuperado/lbsnotify-20260919.sql`.
+> Não existe central de push na suíte: o antigo LBS Notify foi descontinuado
+> em 19/09/2026. Cada app envia o próprio Web Push, com par VAPID e tabela
+> `push_subscriptions` no próprio banco.
 
 ---
 
 ## 🚀 5. Deploy
 
-O deploy **não mora mais neste repositório**. Ele foi centralizado no painel
+O deploy **não mora neste repositório**. Ele é centralizado no painel
 (`server/dashboard`), porque o mesmo mecanismo republica **todos os stacks Docker
-do servidor** — os quatro apps do LifeBusinessSuit são apenas quatro dos 34.
+do servidor** — os quatro apps do LifeBusinessSuit são só uma parte deles.
 
 | Onde | O que é |
 |---|---|
 | `server/dashboard/scripts/redeploy.sh` | Script único de redeploy. Descobre todo `docker-compose.yml` sob `PROJECTS_ROOT` (`/mnt/nvme2tb/docker-services`) mais as raízes de `EXTRA_PROJECT_ROOTS`, em qualquer profundidade. |
-| Aba **Central de Deploys** do painel | A interface: seleção de stacks, flags, comando exato e log ao vivo por streaming. Substitui o antigo `redeploy-ui.mjs`/`start-ui.sh` da porta 7878. |
+| Aba **Central de Deploys** do painel | A interface: seleção de stacks, flags, comando exato e log ao vivo por streaming. |
 | Skill `redeploy.sh` (`awlskills get 27`) | **É esta a versão que o painel executa.** O backend chama `awldocs-run`, que materializa a skill do Postgres — não o arquivo em disco. Alterou o script? Sincronize a skill. |
 
 O par `DEPLOY_BOT_TOKEN`/`DEPLOY_CHAT_ID` da notificação do Telegram (DockerBot)
-vive no `.env` do painel; o antigo `deploy/notify.env` daqui foi removido.
+vive no `.env` do painel.
 
 ### Fluxo de deploy
 
