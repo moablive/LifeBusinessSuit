@@ -6,6 +6,7 @@
 !.env.example
 *.env
 shared.env
+shared.env.*
 
 # Logs
 *.log
