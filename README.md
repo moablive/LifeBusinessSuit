@@ -38,10 +38,10 @@ O sistema faz uso de estratégias de Cache Local (In-memory caching) para evitar
 
 ### 🤖 3. Sistema de Notificações e Interação (Bots do Telegram)
 
-Um diferencial chave do ecossistema LBS é a integração ubíqua com o Telegram. Cada módulo principal possui seu próprio **Bot dedicado**.
+Um diferencial chave do ecossistema LBS é a integração ubíqua com o Telegram. Cada módulo principal possui sua própria **lógica de bot**, centralizada no hub @MeuBruxoBot.
 
-*   **Como funciona**: Containers independentes (ex: `lbs_moneyapp_bot`, `lbs_todoapp_bot`, `lbs_ttsapp_bot`) rodam em paralelo aos backends e frontends.
-*   **Comunicação**: O Bot se comunica com a API REST interna do backend do seu respectivo app na rede `awl_network` (ex: `http://moneyapp_backend:3000/api`).
+*   **Como funciona**: Um hub central (@MeuBruxoBot) recebe as mensagens e as encaminha para processadores específicos de cada app (MoneyAPP, TodoAPP, NotesAPP, LBSTTSAPP). Estes processadores rodam como containers em paralelo aos backends e frontends.
+*   **Comunicação**: Cada processador de bot se comunica com a API REST interna do backend do seu respectivo app na rede `awl_network` (ex: `http://moneyapp_backend:3000/api`).
 *   **Funcionalidades**:
     *   **Notificações Push / Alertas**: Envio instantâneo de faturas a vencer, tarefas agendadas, lembretes de nota.
     *   **Comandos Interativos**: Permite ao usuário cadastrar despesas (MoneyAPP), adicionar tarefas (TodoAPP) ou converter texto em áudio (LBSTTSAPP) diretamente pelo chat do Telegram, sem precisar abrir o Frontend Web.
