@@ -15,7 +15,7 @@ commitar dentro de um submódulo, confira em qual branch ele vive:
 | `LBS_MoneyAPP` | `main` |
 | `LBS_NotesAPP` | **`master`** |
 | `LBS_TodoAPP` | `main` |
-| `LBS_TTSAPP` | **`master`** |
+| `LBS_NaoTeEsquece` | `main` |
 
 Esta tabela é a mesma coisa que o campo `branch` de cada seção do `.gitmodules`, e
 cada submódulo repete o próprio caso no seu `CLAUDE.md`. Mudou um, mudam os três.

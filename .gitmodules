@@ -6,7 +6,7 @@
 # util. Reconstruido em 27/08/2026.
 #
 # `branch` esta preenchido porque a suite e mista de proposito — LBS_MoneyAPP e
-# LBS_TodoAPP usam `main`; LBS_NotesAPP e LBS_TTSAPP, `master`. Nada foi
+# LBS_TodoAPP usam `main`; LBS_NotesAPP, `master` (o LBS_TTSAPP também, até sair em 06/10/2026). Nada foi
 # renomeado para uniformizar: o valor aqui tem que ser o que existe no remoto,
 # senao `git submodule update --remote` falha.
 #
@@ -14,11 +14,6 @@
 # um aviso — faltava a borda publica no tunel — e cada app passou a mandar Web
 # Push por conta propria. O repositorio foi apagado do GitHub, entao manter a
 # entrada aqui fazia `git clone --recurse-submodules` falhar com 404.
-
-[submodule "LBS_TTSAPP"]
-	path = LBS_TTSAPP
-	url = https://github.com/moablive/LBS_TTSAPP.git
-	branch = master
 
 [submodule "LBS_MoneyAPP"]
 	path = LBS_MoneyAPP
@@ -33,4 +28,8 @@
 [submodule "LBS_TodoAPP"]
 	path = LBS_TodoAPP
 	url = https://github.com/moablive/LBS_TodoAPP.git
+	branch = main
+[submodule "LBS_NaoTeEsquece"]
+	path = LBS_NaoTeEsquece
+	url = https://github.com/moablive/naoteesquece.git
 	branch = main

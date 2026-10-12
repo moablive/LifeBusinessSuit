@@ -1,12 +1,12 @@
 # 🏗️ LifeBusinessSuit (LBS)
 
-Guia completo da arquitetura do sistema LifeBusinessSuit (MoneyAPP, NotesAPP, TodoAPP e LBSTTSAPP), e instruções de deploy.
+Guia completo da arquitetura do sistema LifeBusinessSuit (MoneyAPP, NotesAPP e TodoAPP; o LBSTTSAPP saiu em 06/10/2026), e instruções de deploy.
 
 ---
 
 ## 🏗️ Arquitetura de Sistemas
 
-Este documento descreve detalhadamente a arquitetura global, as tecnologias utilizadas e as integrações do ecossistema **LifeBusinessSuit**, que engloba as aplicações: `MoneyAPP`, `NotesAPP`, `TodoAPP` e `LBSTTSAPP`.
+Este documento descreve detalhadamente a arquitetura global, as tecnologias utilizadas e as integrações do ecossistema **LifeBusinessSuit**, que engloba as aplicações: `MoneyAPP`, `NotesAPP` e `TodoAPP` — mais o `NãoTeEsquece`, ainda em construção, que vai unificar os três primeiros.
 
 ### 🌐 1. Visão Geral da Arquitetura (Top-Level)
 
@@ -38,14 +38,14 @@ O sistema faz uso de estratégias de Cache Local (In-memory caching) para evitar
 
 ### 🤖 3. Sistema de Notificações e Interação (Bots do Telegram)
 
-Um diferencial chave do ecossistema LBS é a integração ubíqua com o Telegram. Cada módulo principal possui sua própria **lógica de bot**, centralizada no hub @MeuBruxoBot.
+Um diferencial chave do ecossistema LBS é a integração ubíqua com o Telegram. Cada módulo principal possui sua própria **lógica de bot**, centralizada no hub @moabinho_bot.
 
-*   **Como funciona**: Um hub central (@MeuBruxoBot) recebe as mensagens e as encaminha para processadores específicos de cada app (MoneyAPP, TodoAPP, NotesAPP, LBSTTSAPP). Estes processadores rodam como containers em paralelo aos backends e frontends.
+*   **Como funciona**: Um hub central (@moabinho_bot) recebe as mensagens e as encaminha para processadores específicos de cada app (MoneyAPP, TodoAPP, NotesAPP; o 🔊 Leitor, ex-LBSTTSAPP, é do Moabinho IA). Estes processadores rodam como containers em paralelo aos backends e frontends.
 *   **Comunicação**: Cada processador de bot se comunica com a API REST interna do backend do seu respectivo app na rede `awl_network` (ex: `http://moneyapp_backend:3000/api`).
 *   **Funcionalidades**:
     *   **Notificações Push / Alertas**: Envio instantâneo de faturas a vencer, tarefas agendadas, lembretes de nota.
-    *   **Comandos Interativos**: Permite ao usuário cadastrar despesas (MoneyAPP), adicionar tarefas (TodoAPP) ou converter texto em áudio (LBSTTSAPP) diretamente pelo chat do Telegram, sem precisar abrir o Frontend Web.
-    *   **Integração IA**: O bot também faz parse da intenção do usuário utilizando inteligência artificial local (Ollama) ou APIs externas (Groq) para criar comandos por texto natural (ex: "gastei 50 no mercado hoje").
+    *   **Comandos Interativos**: Permite ao usuário cadastrar despesas (MoneyAPP), adicionar tarefas (TodoAPP) ou converter texto em áudio (🔊 Leitor, do Moabinho IA) diretamente pelo chat do Telegram, sem precisar abrir o Frontend Web.
+    *   **Integração IA**: O bot também faz parse da intenção do usuário para criar comandos por texto natural (ex: "gastei 50 no mercado hoje"). Desde 07/10/2026 esse texto sai do **OmniRoute** (API compatível com OpenAI; `OMNIROUTE_URL` e `OMNIROUTE_API_KEY` no `shared.env`, modelo escolhido pelo roteador), não mais do Ollama local. O Ollama continua só onde a tarefa é visão, como a leitura de recibo do MoneyAPP.
 
 ### 📦 4. Detalhamento dos Módulos e Padronização de Notificações (Skill de Bot)
 
@@ -76,10 +76,13 @@ Módulo focado em gestão do conhecimento e anotações rápidas.
     *   **Ação de Push**: Disparo diário da curadoria de "Notas para rever hoje" ou lembrete pontual.
     *   **Formato Padrão UX**: Bloco de citação (quote) com a prévia da nota e botões Inline: "📖 Abrir no App", "🔄 Rever em 7 dias", "🗑️ Arquivar".
 
-#### 🔊 LBSTTSAPP
-Recebe texto, foto ou PDF, detecta o idioma, traduz para o idioma preferido e converte em fala.
-*   **Arquitetura**: Frontend Vue 3 (PWA), backend Node.js/Express e bot em Python, com edge-tts próprio (controle fino da taxa de leitura) e Ollama para OCR e tradução.
-*   **Notificação**: Web Push próprio avisa quando um processamento longo termina.
+#### 🔊 LBSTTSAPP → Leitor Moabinho (saiu em 06/10/2026)
+O leitor (texto, foto ou PDF → tradução → fala) virou a seção **🔊 Leitor** do Moabinho Mind, no painel `projects/moabinhoia`, e o módulo 🔊 Leitor do @moabinho_bot é atendido pelo container `moabinhoia_leitor`. O repositório `moablive/LBS_TTSAPP` foi arquivado; containers, banco `lbsttsapp` e o domínio `lbstts.` foram removidos.
+
+#### 🧠 NãoTeEsquece (`LBS_NaoTeEsquece`, em construção)
+Produto que junta tarefas, finanças e notas num app só: a pessoa fala, fotografa ou escreve, e ele decide se aquilo é tarefa, conta ou anotação.
+*   **Arquitetura**: monorepo pnpm próprio (backend Express + frontend Vue 3 PWA), banco `naoteesquece` no `server_db_postgres`, login pelo LoginHUB com 2FA.
+*   **Estado**: fase 1 (base). Migração dos dados dos três apps, IA de voz/foto e bot via @moabinho_bot ficam para as fases seguintes. Plano e estado atual em `LBS_NaoTeEsquece/README.md`.
 
 > Não existe central de push na suíte: o antigo LBS Notify foi descontinuado
 > em 19/09/2026. Cada app envia o próprio Web Push, com par VAPID e tabela
@@ -90,12 +93,12 @@ Recebe texto, foto ou PDF, detecta o idioma, traduz para o idioma preferido e co
 ## 🚀 5. Deploy
 
 O deploy **não mora neste repositório**. Ele é centralizado no painel
-(`server/dashboard`), porque o mesmo mecanismo republica **todos os stacks Docker
-do servidor** — os quatro apps do LifeBusinessSuit são só uma parte deles.
+(`projects/moabinhoia`, o Moabinho IA), porque o mesmo mecanismo republica **todos os stacks Docker
+do servidor** — os apps do LifeBusinessSuit são só uma parte deles.
 
 | Onde | O que é |
 |---|---|
-| `server/dashboard/scripts/redeploy.sh` | Script único de redeploy. Descobre todo `docker-compose.yml` sob `PROJECTS_ROOT` (`/mnt/nvme2tb/docker-services`) mais as raízes de `EXTRA_PROJECT_ROOTS`, em qualquer profundidade. |
+| `projects/moabinhoia/scripts/redeploy.sh` | Script único de redeploy. Descobre todo `docker-compose.yml` sob `PROJECTS_ROOT` (`/mnt/nvme2tb/docker-services`) mais as raízes de `EXTRA_PROJECT_ROOTS`, em qualquer profundidade. |
 | Aba **Central de Deploys** do painel | A interface: seleção de stacks, flags, comando exato e log ao vivo por streaming. |
 | Skill `redeploy.sh` (`awlskills get 27`) | **É esta a versão que o painel executa.** O backend chama `awldocs-run`, que materializa a skill do Postgres — não o arquivo em disco. Alterou o script? Sincronize a skill. |
 
@@ -117,10 +120,10 @@ O nome do stack é o **caminho relativo** — `basename` se repete entre grupos,
 nome ambíguo é erro em vez de escolha silenciosa:
 
 ```bash
-cd /mnt/nvme2tb/docker-services/server/dashboard
+cd /mnt/nvme2tb/docker-services/projects/moabinhoia
 
 scripts/redeploy.sh                                 # menu interativo (ou TODOS)
-scripts/redeploy.sh LifeBusinessSuit/LBS_NotesAPP   # só um app
+scripts/redeploy.sh projects/LifeBusinessSuit/LBS_NotesAPP   # só um app
 scripts/redeploy.sh --no-build LBS_NotesAPP         # basename/prefixo também vale
 scripts/redeploy.sh --list                          # lista os stacks descobertos
 scripts/redeploy.sh --dry-run LBS_MoneyAPP          # só mostra o que faria
@@ -130,7 +133,7 @@ scripts/redeploy.sh --dry-run LBS_MoneyAPP          # só mostra o que faria
 
 ## 🏷️ 6. Versionamento e aviso de nova versão
 
-**Os quatro apps têm o mesmo mecanismo, implantado em 27/08/2026.** Ele resolve
+**Os três apps têm o mesmo mecanismo, implantado em 27/08/2026.** Ele resolve
 um problema que só aparece com PWA instalado na tela inicial: o aparelho fica
 semanas sem recarregar de verdade, então o redeploy sobe a versão nova e o
 usuário continua rodando o bundle antigo — chamando rota que mudou e com bug já
@@ -138,8 +141,7 @@ corrigido, sem sinal nenhum de que está desatualizado.
 
 | App | Versão nasce em | Aparece em |
 |---|---|---|
-| LBSTTSAPP | `LBS_TTSAPP/VERSION` | badge no canto · `GET /health` · banner |
-| MoneyAPP | `LBS_MoneyAPP/VERSION` | idem |
+| MoneyAPP | `LBS_MoneyAPP/VERSION` | badge no canto · `GET /health` · banner |
 | NotesAPP | `LBS_NotesAPP/VERSION` | idem |
 | TodoAPP | `LBS_TodoAPP/VERSION` | idem |
 
@@ -147,7 +149,7 @@ corrigido, sem sinal nenhum de que está desatualizado.
 comparação que acende o aviso é sempre dentro do mesmo app: o bundle contra o
 `/health` dele. Um app em `0.0.7` e outro em `0.0.2` é estado normal.
 
-### O fluxo, igual nos quatro
+### O fluxo, igual nos três
 
 ```
 VERSION (0.0.1)                       ← fonte da verdade, versionada no git
@@ -172,8 +174,8 @@ VERSION (0.0.1)                       ← fonte da verdade, versionada no git
 
 ```bash
 cd LBS_MoneyAPP && node scripts/bump-version.mjs                      # 0.0.1 -> 0.0.2
-/mnt/nvme2tb/docker-services/server/dashboard/scripts/redeploy.sh \
-    LifeBusinessSuit/LBS_MoneyAPP                                     # o --build é o padrão
+/mnt/nvme2tb/docker-services/projects/moabinhoia/scripts/redeploy.sh \
+    projects/LifeBusinessSuit/LBS_MoneyAPP                                     # o --build é o padrão
 ```
 
 O `--build` **não é opcional aqui**: a versão do front é build-arg, congelada
@@ -201,7 +203,7 @@ de nova versão*.
 
 ## 🔥 7. Hot reload (modo dev)
 
-Os quatro apps têm um `docker-compose.dev.yml` que devolve o hot reload sem
+Os três apps têm um `docker-compose.dev.yml` que devolve o hot reload sem
 tocar no caminho de produção. **Ele é sobreposição:** `docker compose up -d`
 sozinho e o `redeploy.sh` continuam subindo produção — build multi-stage, front
 por nginx, sem volume de código. Só entra em modo dev quem passa `-f` nos dois
@@ -209,9 +211,6 @@ arquivos.
 
 ```bash
 cd MoneyAPP && pnpm docker:dev        # atalho nos três apps pnpm
-# LBSTTSAPP (sem package.json na raiz):
-cd LBSTTSAPP && docker compose --env-file ../shared.env --env-file .env \
-  -f docker-compose.yml -f docker-compose.dev.yml up
 ```
 
 Editou no host, o container reage: `tsx watch` reinicia o backend em ~1 s e o
@@ -219,7 +218,6 @@ Vite troca o módulo no navegador.
 
 | App | Frontend (Vite) | Backend (direto) |
 |---|---|---|
-| LBSTTSAPP | `:5181` | `:5081` |
 | MoneyAPP | `:5182` | `:5082` |
 | NotesAPP | `:5183` | `:5083` |
 | TodoAPP | `:5184` | `:5084` |
@@ -241,5 +239,3 @@ público — o túnel da Cloudflare aponta para o nginx, que não sobe em dev.
 - **Rebuild continua necessário** para mudança em `package.json`, `Dockerfile`,
   `.env` ou compose — e com `down -v`, porque o volume anônimo sobrevive ao
   `--build` com o `node_modules` antigo.
-- **O bot do LBSTTSAPP fica de fora**: é Python, sem watcher. O código está
-  montado, mas quem aplica é `docker restart lbs_ttsapp_bot`.
