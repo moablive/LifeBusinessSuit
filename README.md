@@ -1,6 +1,8 @@
+<p align="center"><img src="assets/lbs.svg" alt="Brasão da LifeBusinessSuit" width="128" height="128"></p>
+
 # 🏗️ LifeBusinessSuit (LBS)
 
-Guia completo da arquitetura do sistema LifeBusinessSuit (MoneyAPP, NotesAPP e TodoAPP; o LBSTTSAPP saiu em 06/10/2026), e instruções de deploy.
+Guia completo da arquitetura do sistema LifeBusinessSuit (LoginHUB, MoneyAPP, NotesAPP, TodoAPP e NaoTeEsquece; o LBSTTSAPP saiu em 06/10/2026), e instruções de deploy. Cada app é um PWA próprio e todos entram pelo LoginHUB, o login central da suíte.
 
 ---
 
