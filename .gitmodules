@@ -33,3 +33,6 @@
 	path = LBS_NaoTeEsquece
 	url = https://github.com/moablive/naoteesquece.git
 	branch = main
+[submodule "LBS_LoginHUB"]
+	path = LBS_LoginHUB
+	url = https://github.com/moablive/LoginHUB.git
