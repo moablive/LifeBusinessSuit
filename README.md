@@ -2,7 +2,7 @@
 
 # 🏗️ LifeBusinessSuit (LBS)
 
-Guia completo da arquitetura do sistema LifeBusinessSuit (LoginHUB, MoneyAPP, NotesAPP, TodoAPP e NaoTeEsquece; o LBSTTSAPP saiu em 06/10/2026), e instruções de deploy. Cada app é um PWA próprio e todos entram pelo LoginHUB, o login central da suíte.
+Guia completo da arquitetura do sistema LifeBusinessSuit (MoneyAPP, NotesAPP, TodoAPP e NaoTeEsquece; o LBSTTSAPP saiu em 06/10/2026), e instruções de deploy. Cada app é um PWA próprio e todos entram pelo [LoginHUB](https://github.com/moablive/LoginHUB), o login central — um app próprio, com repositório separado.
 
 ---
 
@@ -53,10 +53,10 @@ Um diferencial chave do ecossistema LBS é a integração ubíqua com o Telegram
 
 Para garantir consistência na experiência do usuário e facilitar a manutenção, todos os Bots do ecossistema seguem uma **Padronização de Notificações (Cron & Push)**. O padrão estabelece que o agendamento (Cron) fica a cargo do Bot (ou acionado via webhook do Backend) e a interface é estritamente via Telegraf (Telegram API), possuindo botões Inline (`Markup.inlineKeyboard`) padronizados para silenciar (`TOGGLE_NOTIFY`) ou executar ações rápidas sem sair do chat.
 
-#### 🔑 LoginHUB (`LBS_LoginHUB`)
+#### 🔑 LoginHUB (app próprio, fora da suíte)
 
 *   **Papel**: login central da suíte (Identity Provider multi-tenant: JWT, Magic Link, 2FA). MoneyAPP, TodoAPP, NotesAPP e NaoTeEsquece entram por ele; fora da LBS, também a Astral Wave, o MovingUP e o painel Moabinho IA.
-*   **Onde mora**: submódulo `LBS_LoginHUB` (repositório `moablive/LoginHUB`), desde 19/10/2026 — antes ficava em `docker-services/server/LoginHUB`. Foi movido direto, sem link simbólico no caminho antigo.
+*   **Onde mora**: repositório próprio [`moablive/LoginHUB`](https://github.com/moablive/LoginHUB) — deixou de ser submódulo da suíte em 27/10/2026. No servidor a pasta continua em `LifeBusinessSuit/LBS_LoginHUB` (desde 19/10/2026; antes `docker-services/server/LoginHUB`), ignorada pelo git da suíte.
 *   **Stack**: `name: loginhub` no compose (containers `server_loginhub_packages`, `server_loginhub_backend`, `server_loginhub_frontend`); rotas loginhub.astralwavelabel.com e api-auth.astralwavelabel.com.
 *   **auth-kit**: a fonte da integração (`hubAuthServer`, `hubAuthClient`, `hubAuthBot`) mora em `LBS_LoginHUB/packages/auth-kit`; `LBS_LoginHUB/scripts/sync-auth-kit.sh` copia para cada app (`--check` confere).
 

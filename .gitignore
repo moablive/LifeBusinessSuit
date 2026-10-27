@@ -42,3 +42,7 @@ temp/
 # em commit carregando token da Cloudflare e senha do Postgres (junho/2026).
 # Fica fora do git, sempre.
 .claude/settings.local.json
+
+# LoginHUB: repositorio proprio (moablive/LoginHUB), nao e submodulo da suite desde
+# 27/10/2026. A pasta mora aqui no servidor por causa dos containers e do auth-kit.
+/LBS_LoginHUB/

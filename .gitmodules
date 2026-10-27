@@ -14,6 +14,10 @@
 # um aviso — faltava a borda publica no tunel — e cada app passou a mandar Web
 # Push por conta propria. O repositorio foi apagado do GitHub, entao manter a
 # entrada aqui fazia `git clone --recurse-submodules` falhar com 404.
+#
+# O LBS_LoginHUB saiu em 27/10/2026 (pedido do dono): o LoginHUB e um app proprio,
+# o login central de tudo (suite, OmegaShell, clientes), com repositorio separado
+# (moablive/LoginHUB). A pasta continua aqui no servidor, ignorada (.gitignore).
 
 [submodule "LBS_MoneyAPP"]
 	path = LBS_MoneyAPP
@@ -33,6 +37,3 @@
 	path = LBS_NaoTeEsquece
 	url = https://github.com/moablive/naoteesquece.git
 	branch = main
-[submodule "LBS_LoginHUB"]
-	path = LBS_LoginHUB
-	url = https://github.com/moablive/LoginHUB.git
