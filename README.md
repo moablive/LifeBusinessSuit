@@ -56,9 +56,9 @@ Para garantir consistência na experiência do usuário e facilitar a manutenç�
 #### 🔑 LoginHUB (app próprio, fora da suíte)
 
 *   **Papel**: login central da suíte (Identity Provider multi-tenant: JWT, Magic Link, 2FA). MoneyAPP, TodoAPP, NotesAPP e NaoTeEsquece entram por ele; fora da LBS, também a Astral Wave, o MovingUP e o painel Moabinho IA.
-*   **Onde mora**: repositório próprio [`moablive/LoginHUB`](https://github.com/moablive/LoginHUB) — deixou de ser submódulo da suíte em 27/10/2026. No servidor a pasta continua em `LifeBusinessSuit/LBS_LoginHUB` (desde 19/10/2026; antes `docker-services/server/LoginHUB`), ignorada pelo git da suíte.
+*   **Onde mora**: repositório próprio [`moablive/LoginHUB`](https://github.com/moablive/LoginHUB) — deixou de ser submódulo da suíte em 27/10/2026. No servidor a pasta é `docker-services/server/LoginHUB` (voltou em 04/11/2026; de 19/10 a 04/11 esteve em `LifeBusinessSuit/LBS_LoginHUB`).
 *   **Stack**: `name: loginhub` no compose (containers `server_loginhub_packages`, `server_loginhub_backend`, `server_loginhub_frontend`); rotas loginhub.astralwavelabel.com e api-auth.astralwavelabel.com.
-*   **auth-kit**: a fonte da integração (`hubAuthServer`, `hubAuthClient`, `hubAuthBot`) mora em `LBS_LoginHUB/packages/auth-kit`; `LBS_LoginHUB/scripts/sync-auth-kit.sh` copia para cada app (`--check` confere).
+*   **auth-kit**: a fonte da integração (`hubAuthServer`, `hubAuthClient`, `hubAuthBot`) mora em `server/LoginHUB/packages/auth-kit`; `server/LoginHUB/scripts/sync-auth-kit.sh` copia para cada app (`--check` confere).
 
 #### 💰 MoneyAPP
 Gerenciador financeiro pessoal e empresarial.
